@@ -38,5 +38,6 @@ If you use the [`windi:global` style tag attribute](https://windicss.org/integra
 ## Limitations
 - Only modifies a file when script block comes first. This could easily be overcome by better logic that cuts script block out of any location properly. **The preprocessor is well tested with Vitest and PRs are welcome.** :)
 
-## To Document
-- This preprocessor now also handles rtl: and ltr: classes because they don't work without being placed in :global() styles.
+## RTL support
+- This preprocessor now also handles `rtl:____` and `ltr:____` classes because they don't work without being placed inside `:global()` styles if your `dir="rtl"` attribute is outside of the component at hand (almost always because you place this close to your document body).
+- Add pass `{rtl: true}` as the first argument to the preprocessor to turn on RTL support. For example: `deepWind({rtl: true})`

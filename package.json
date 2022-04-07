@@ -24,12 +24,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/livingtongues/living-dictionaries.git"
+    "url": "git+https://github.com/jacob-8/svelte-deep-wind-preprocess.git"
   },
   "author": "Living Tongues",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/livingtongues/living-dictionaries/issues"
+    "url": "https://github.com/jacob-8/svelte-deep-wind-preprocess/issues"
   },
-  "homepage": "https://github.com/livingtongues/living-dictionaries/packages/svelte-deep-wind-preprocess#readme"
+  "homepage": "https://github.com/jacob-8/svelte-deep-wind-preprocess#readme"
 }
