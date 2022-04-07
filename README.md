@@ -43,3 +43,4 @@ If you use the [`windi:global` style tag attribute](https://windicss.org/integra
 
 ## Limitations
 - Only modifies a file when script block comes first. This could easily be overcome by better logic that cuts script block out of any location properly. **The preprocessor is well tested with Vitest and PRs are welcome.** :)
+- Doesn't work if running right after MDSvex. I logged out the content before and after both preprocessors ran but still don't know why.
