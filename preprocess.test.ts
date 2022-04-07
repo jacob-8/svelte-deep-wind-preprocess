@@ -2,12 +2,20 @@ import fs from 'fs';
 import { preprocess } from 'svelte/compiler';
 import svelteDeepWind from './index.js';
 
+test.only('Preprocessor respects ! on rtl classes', async () => {
+  const inputFile = fs.readFileSync('./input/ImportantRTL.svelte', 'utf-8');
+  const result = await preprocess(inputFile, [svelteDeepWind({ rtl: true })]);
+  fs.writeFileSync('./output/ImportantRTL.svelte', result.code, 'utf-8');
+});
+
 test('Preprocessor makes `gl:` classes global', async () => {
   const result = await preprocess(
     `<div class="gl:space-x-1 gl:space-y-[2px]"><Button /><Button /><Button /></div>`,
     [svelteDeepWind({ globalPrefix: true })]
   );
-  expect(result.code).toMatchInlineSnapshot('"<div class=\\"gl_space-x-1 gl_space-y-[2px]\\"><Button /><Button /><Button /></div><style> :global(gl_space-x-1) { @apply space-x-1; } :global(gl_space-y-\\\\[2px\\\\]) { @apply space-y-[2px]; }</style>"');
+  expect(result.code).toMatchInlineSnapshot(
+    `"<div class=\\"gl_space-x-1 gl_space-y-[2px]\\"><Button /><Button /><Button /></div><style> :global(gl_space-x-1) { @apply space-x-1; } :global(gl_space-y-\\\\[2px\\\\]) { @apply space-y-[2px]; }</style>"`
+  );
 });
 
 test('Preprocessor allows rtl classes to be passed down to child component', async () => {

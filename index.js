@@ -8,9 +8,9 @@ const applyCSSLinesRgx = /@apply [\s\S]+?[^}]+/g;
 
 /**
  * @returns {import('svelte/types/compiler/preprocess').PreprocessorGroup}
- * @param {Object} options Preprocessor options
- * @param {boolean} options.rtl Support Right-To-Left languages using rtl: and ltr: prefixes
- * @param {boolean} options.globalPrefix using gl: prefix to make a class global
+ * @param {Object} [options={ rtl: false, globalPrefix: false }] Preprocessor options
+ * @param {boolean} [options.rtl] Support Right-To-Left languages using rtl: and ltr: prefixes
+ * @param {boolean} [options.globalPrefix] using gl: prefix to make a class global
  */
 export default ({ rtl, globalPrefix } = { rtl: false, globalPrefix: false }) => {
   return {
@@ -69,8 +69,8 @@ export default ({ rtl, globalPrefix } = { rtl: false, globalPrefix: false }) => 
       // make rtl: and ltr: classes used as regular class attributes global
       if (rtl) {
         const updatedContent = s.toString().replace(applyCSSLinesRgx, '');
-        const rtlMatches = updatedContent.matchAll(/rtl:[a-z0-9:()[\]-]+/g)
-        const ltrMatches = updatedContent.matchAll(/ltr:[a-z0-9:()[\]-]+/g)
+        const rtlMatches = updatedContent.matchAll(/rtl:[a-z0-9!:()[\]-]+/g)
+        const ltrMatches = updatedContent.matchAll(/ltr:[a-z0-9!:()[\]-]+/g)
         const rtlClasses = new Set();
         const ltrClasses = new Set();
         for (const match of rtlMatches) {
@@ -105,12 +105,13 @@ export default ({ rtl, globalPrefix } = { rtl: false, globalPrefix: false }) => 
           s.append('<style>' + addedStyles + '</style>');
         } else {
           s.appendLeft(ast.css.content.start + scriptEndIndex, addedStyles);
+          // s.replace('</style>', addedStyles + '</style>'); // could place styles at end but windi will still come after
         }
       }
 
       let code = s.toString();
       if (rtl) {
-        // change names to keep svelte-windi-preprocess from recognizing them
+        // change names to keep svelte-windi-preprocess from recognizing them 
         code = code.replace(/ltr:/g, 'ltr_').replace(/rtl:/g, 'rtl_');
       }
       if (globalPrefix) {
