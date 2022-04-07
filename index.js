@@ -4,17 +4,20 @@ import { parse, walk } from 'svelte/compiler';
 const deepName = (classes) => 'deep_' + classes.replace(/\s+/g, '_').replace(/:/g, '-');
 const classNameEscapeCharacters = /([^a-zA-Z0-9_-])/g;
 const escapeDisallowedCharacters = (className) => className.replace(classNameEscapeCharacters, '\\$1');
+const applyCSSLinesRgx = /@apply [\s\S]+?[^}]+/g;
 
 /**
  * @returns {import('svelte/types/compiler/preprocess').PreprocessorGroup}
  * @param {Object} options Preprocessor options
  * @param {boolean} options.rtl Support Right-To-Left languages using rtl: and ltr: prefixes
+ * @param {boolean} options.globalPrefix using gl: prefix to make a class global
  */
-export default ({ rtl } = { rtl: false }) => {
+export default ({ rtl, globalPrefix } = { rtl: false, globalPrefix: false }) => {
   return {
     markup({ content, filename }) {
       const s = new MagicString(content);
 
+      // Skip Typescript blocks and remove @apply css lines to avoid ast parse errors
       let scriptEndIndex = 0;
       if (/lang=['"]ts['"]/.test(content)) {
         const scriptIsFirst = /^<script/;
@@ -23,12 +26,11 @@ export default ({ rtl } = { rtl: false }) => {
         const match = scriptBlocksAtBeginning.exec(content);
         scriptEndIndex = match[0].length;
       }
-
-      const noTSnoApplyContent = content.slice(scriptEndIndex).replace(/@apply [\s\S]+?[^}]+/g, '');
+      const noTSnoApplyContent = content.slice(scriptEndIndex).replace(applyCSSLinesRgx, '');
       const ast = parse(noTSnoApplyContent);
 
+      // Find which classes have been passed down to child components
       const deepClasses = new Set();
-
       walk(ast.html, {
         enter({ type, attributes }) {
           if (type === 'InlineComponent') {
@@ -42,6 +44,7 @@ export default ({ rtl } = { rtl: false }) => {
         }
       })
 
+      // Make passed down classes global (including rtl: and ltr: if turned on)
       let addedStyles = '';
       for (const clsGroup of deepClasses) {
         const clsName = `.${escapeDisallowedCharacters(deepName(clsGroup))}`;
@@ -63,10 +66,11 @@ export default ({ rtl } = { rtl: false }) => {
         }
       }
 
+      // make rtl: and ltr: classes used as regular class attributes global
       if (rtl) {
-        // capture rtl: and ltr: classes
-        const rtlMatches = noTSnoApplyContent.matchAll(/rtl:[a-z0-9:()[\]-]+/g)
-        const ltrMatches = noTSnoApplyContent.matchAll(/ltr:[a-z0-9:()[\]-]+/g)
+        const updatedContent = s.toString().replace(applyCSSLinesRgx, '');
+        const rtlMatches = updatedContent.matchAll(/rtl:[a-z0-9:()[\]-]+/g)
+        const ltrMatches = updatedContent.matchAll(/ltr:[a-z0-9:()[\]-]+/g)
         const rtlClasses = new Set();
         const ltrClasses = new Set();
         for (const match of rtlMatches) {
@@ -76,10 +80,23 @@ export default ({ rtl } = { rtl: false }) => {
           ltrClasses.add(match[0]);
         }
         for (const cls of rtlClasses) {
-          addedStyles = addedStyles + ` :global([dir=rtl] .${escapeDisallowedCharacters(cls.replace(/rtl:/, 'rtl_'))}) { @apply ${cls.replace('rtl:', '')}; }`;
+          addedStyles = addedStyles + ` :global([dir=rtl] .${escapeDisallowedCharacters(cls.replace('rtl:', 'rtl_'))}) { @apply ${cls.replace('rtl:', '')}; }`;
         }
         for (const cls of ltrClasses) {
-          addedStyles = addedStyles + ` :global([dir=ltr] .${escapeDisallowedCharacters(cls.replace(/ltr:/, 'ltr_'))}) { @apply ${cls.replace('ltr:', '')}; }`;
+          addedStyles = addedStyles + ` :global([dir=ltr] .${escapeDisallowedCharacters(cls.replace('ltr:', 'ltr_'))}) { @apply ${cls.replace('ltr:', '')}; }`;
+        }
+      }
+      
+      // make gl: prefixed classes global
+      if (globalPrefix) {
+        const updatedContent = s.toString().replace(applyCSSLinesRgx, '');
+        const globalMatches = updatedContent.matchAll(/gl:[a-z0-9:()[\]-]+/g)
+        const globalClasses = new Set();
+        for (const match of globalMatches) {
+          globalClasses.add(match[0]);
+        }
+        for (const cls of globalClasses) {
+          addedStyles = addedStyles + ` :global(${escapeDisallowedCharacters(cls.replace('gl:', 'gl_'))}) { @apply ${cls.replace('gl:', '')}; }`;
         }
       }
 
@@ -91,9 +108,17 @@ export default ({ rtl } = { rtl: false }) => {
         }
       }
 
+      let code = s.toString();
+      if (rtl) {
+        // change names to keep svelte-windi-preprocess from recognizing them
+        code = code.replace(/ltr:/g, 'ltr_').replace(/rtl:/g, 'rtl_');
+      }
+      if (globalPrefix) {
+        code = code.replace(/gl:/g, 'gl_');
+      }
+
       return {
-        // change names to keep windi from recognizing them
-        code: s.toString().replace(/ltr:/g, 'ltr_').replace(/rtl:/g, 'rtl_'),
+        code,
         map: s.generateMap({ hires: true, file: filename })
       }
     }

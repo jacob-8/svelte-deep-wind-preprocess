@@ -2,6 +2,14 @@ import fs from 'fs';
 import { preprocess } from 'svelte/compiler';
 import svelteDeepWind from './index.js';
 
+test('Preprocessor makes `gl:` classes global', async () => {
+  const result = await preprocess(
+    `<div class="gl:space-x-1 gl:space-y-[2px]"><Button /><Button /><Button /></div>`,
+    [svelteDeepWind({ globalPrefix: true })]
+  );
+  expect(result.code).toMatchInlineSnapshot('"<div class=\\"gl_space-x-1 gl_space-y-[2px]\\"><Button /><Button /><Button /></div><style> :global(gl_space-x-1) { @apply space-x-1; } :global(gl_space-y-\\\\[2px\\\\]) { @apply space-y-[2px]; }</style>"');
+});
+
 test('Preprocessor allows rtl classes to be passed down to child component', async () => {
   const result = await preprocess(
     `<Menu {portal} class="right-2 rtl:left-2 ltr:right-[4px] top-11">
@@ -12,7 +20,7 @@ test('Preprocessor allows rtl classes to be passed down to child component', asy
   expect(result.code).toMatchInlineSnapshot(`
     "<Menu {portal} class=\\"deep_right-2_rtl-left-2_ltr-right-[4px]_top-11\\">
           <div class=\\"ltr_mt-2\\">Hello</div>
-        </Menu><style> :global(.deep_right-2_rtl-left-2_ltr-right-\\\\[4px\\\\]_top-11) { @apply right-2 top-11; } :global([dir=rtl] .deep_right-2_rtl-left-2_ltr-right-\\\\[4px\\\\]_top-11) { @apply left-2; } :global([dir=ltr] .deep_right-2_rtl-left-2_ltr-right-\\\\[4px\\\\]_top-11) { @apply right-[4px]; } :global([dir=rtl] .rtl_left-2) { @apply left-2; } :global([dir=ltr] .ltr_right-\\\\[4px\\\\]) { @apply right-[4px]; } :global([dir=ltr] .ltr_mt-2) { @apply mt-2; }</style>"
+        </Menu><style> :global(.deep_right-2_rtl-left-2_ltr-right-\\\\[4px\\\\]_top-11) { @apply right-2 top-11; } :global([dir=rtl] .deep_right-2_rtl-left-2_ltr-right-\\\\[4px\\\\]_top-11) { @apply left-2; } :global([dir=ltr] .deep_right-2_rtl-left-2_ltr-right-\\\\[4px\\\\]_top-11) { @apply right-[4px]; } :global([dir=ltr] .ltr_mt-2) { @apply mt-2; }</style>"
   `);
 });
 

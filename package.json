@@ -1,6 +1,6 @@
 {
   "name": "svelte-deep-wind-preprocess",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Pass scoped Windicss classes to child Svelte components",
   "keywords": [
     "svelte",
@@ -26,7 +26,7 @@
     "type": "git",
     "url": "git+https://github.com/jacob-8/svelte-deep-wind-preprocess.git"
   },
-  "author": "Living Tongues",
+  "author": "Jacob Bowdoin",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/jacob-8/svelte-deep-wind-preprocess/issues"
