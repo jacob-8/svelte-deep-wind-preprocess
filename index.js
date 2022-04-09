@@ -10,7 +10,7 @@ const applyCSSLinesRgx = /@apply [\s\S]+?[^}]+/g;
  * @returns {import('svelte/types/compiler/preprocess').PreprocessorGroup}
  * @param {Object} [options={ rtl: false, globalPrefix: false }] Preprocessor options
  * @param {boolean} [options.rtl] Support Right-To-Left languages using rtl: and ltr: prefixes
- * @param {boolean} [options.globalPrefix] using gl: prefix to make a class global
+ * @param {boolean} [options.globalPrefix] using global: prefix to make a class global
  */
 export default ({ rtl, globalPrefix } = { rtl: false, globalPrefix: false }) => {
   return {
@@ -87,16 +87,16 @@ export default ({ rtl, globalPrefix } = { rtl: false, globalPrefix: false }) => 
         }
       }
       
-      // make gl: prefixed classes global
+      // make global: prefixed classes global
       if (globalPrefix) {
         const updatedContent = s.toString().replace(applyCSSLinesRgx, '');
-        const globalMatches = updatedContent.matchAll(/gl:[a-z0-9:()[\]-]+/g)
+        const globalMatches = updatedContent.matchAll(/global:[a-z0-9:()[\]-]+/g)
         const globalClasses = new Set();
         for (const match of globalMatches) {
           globalClasses.add(match[0]);
         }
         for (const cls of globalClasses) {
-          addedStyles = addedStyles + ` :global(${escapeDisallowedCharacters(cls.replace('gl:', 'gl_'))}) { @apply ${cls.replace('gl:', '')}; }`;
+          addedStyles = addedStyles + ` :global(${escapeDisallowedCharacters(cls.replace('global:', 'gl_'))}) { @apply ${cls.replace('global:', '')}; }`;
         }
       }
 
@@ -115,7 +115,7 @@ export default ({ rtl, globalPrefix } = { rtl: false, globalPrefix: false }) => 
         code = code.replace(/ltr:/g, 'ltr_').replace(/rtl:/g, 'rtl_');
       }
       if (globalPrefix) {
-        code = code.replace(/gl:/g, 'gl_');
+        code = code.replace(/global:/g, 'gl_');
       }
 
       return {

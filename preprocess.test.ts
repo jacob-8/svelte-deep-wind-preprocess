@@ -2,15 +2,15 @@ import fs from 'fs';
 import { preprocess } from 'svelte/compiler';
 import svelteDeepWind from './index.js';
 
-test.only('Preprocessor respects ! on rtl classes', async () => {
+test('Preprocessor respects ! on rtl classes', async () => {
   const inputFile = fs.readFileSync('./input/ImportantRTL.svelte', 'utf-8');
   const result = await preprocess(inputFile, [svelteDeepWind({ rtl: true })]);
   fs.writeFileSync('./output/ImportantRTL.svelte', result.code, 'utf-8');
 });
 
-test('Preprocessor makes `gl:` classes global', async () => {
+test('Preprocessor makes `global:` classes global', async () => {
   const result = await preprocess(
-    `<div class="gl:space-x-1 gl:space-y-[2px]"><Button /><Button /><Button /></div>`,
+    `<div class="global:space-x-1 global:space-y-[2px]"><Button /><Button /><Button /></div>`,
     [svelteDeepWind({ globalPrefix: true })]
   );
   expect(result.code).toMatchInlineSnapshot(
